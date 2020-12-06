@@ -18,7 +18,7 @@ class Driver:
             "safari" : lambda : webdriver.Safari()
             }
         try:
-            Driver.driver = driverMap[lower(driver_name)]()
+            Driver.driver = driverMap[driver_name.lower()]()
         except KeyError as e:
             print ( "Webdriver with name:", driver_name, "Not found. Chrome will be used as default. (Also Edge, Safari, Firefox could be used. More info at: https://selenium-python.readthedocs.io/installation.html#detailed-instructions-for-windows-users)")
             Driver.driver = webdriver.Chrome()

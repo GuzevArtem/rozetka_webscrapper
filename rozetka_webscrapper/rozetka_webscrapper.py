@@ -6,6 +6,11 @@ import settings
 
 import files.file_writer as fw
 
+from model.category import Category
+from model.group import Group
+from model.item import Item
+from model.comment import Comment
+
 from bs4 import BeautifulSoup
 
 from driver import Driver
@@ -16,7 +21,7 @@ def decode_str(unicodestr):
     return unicodestr
 
 def parse_comment(comment):
-    parsed_comment = model.comment.Comment()
+    parsed_comment = Comment()
 
     comment_author = comment.find(class_="comment__author")
 
@@ -127,7 +132,7 @@ def parse_item_page_for_comments(page):
     return parsed_comments
 
 def parse_item_page(url):
-    parsed_item = model.item.Item()
+    parsed_item = Item()
     page = requests.get(url+'comments/')
     parsed_item.url = url
     soup = BeautifulSoup(page.text, 'html.parser')
@@ -147,7 +152,7 @@ def parse_specific_items_group(url):
     driver.get(url)  
     html = driver.page_source
 
-    parsed_group = model.group.Group()
+    parsed_group = Group()
     parsed_group.url = url
     soup = BeautifulSoup(html, 'html.parser')
     title = soup.find("h1", class_="catalog-heading")
@@ -180,7 +185,7 @@ def parse_category(url):
     driver.get(url)  
     html = driver.page_source
 
-    parsed_category = model.category.Category()
+    parsed_category = Category()
 
     parsed_category.url = url
     soup = BeautifulSoup(html, 'html.parser')
@@ -265,7 +270,7 @@ def scrap_rozetka_web_site():
 
     print("Saving to file!")
     fw.write_plain_iterable(
-        (settings.RESULT_FOLDER_NAME + "/" + settings.RESULT_FILE_NAME_PREFIX + "_" + str(datetime.datetime.now()).replace(" ", "_").replace(":","").replace(".", "") + ".json").replace("/+", "/"),
+        settings.SITE_SCRAP_RELATIVE_FILE_PATH_STRING.format(str(datetime.datetime.now()).replace(" ", "_").replace(":","").replace(".", "")).replace("/+", "/"),
         parsed_site_data,
         lambda o : o.toJson(),
         encoding='utf-8'

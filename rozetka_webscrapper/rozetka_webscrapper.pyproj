@@ -45,6 +45,16 @@
     <Compile Include="model\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="post_process\bow_processing.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="post_process\model\bag.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="post_process\model\__init__.py" />
+    <Compile Include="post_process\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="settings.py">
       <SubType>Code</SubType>
     </Compile>
@@ -56,6 +66,8 @@
   <ItemGroup>
     <Folder Include="model\" />
     <Folder Include="files\" />
+    <Folder Include="post_process\" />
+    <Folder Include="post_process\model\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

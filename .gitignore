@@ -2,4 +2,5 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/rozetka_webscrapper/results/*.json
+/rozetka_webscrapper/results/**/*.json
+/rozetka_webscrapper/**/__pycache__
