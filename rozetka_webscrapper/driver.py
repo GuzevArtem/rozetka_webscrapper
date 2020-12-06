@@ -2,7 +2,7 @@ from selenium import webdriver
 import settings
 
 class Driver:
-    driver = webdriver.Chrome()
+    driver = None
     closed = True
 
     def get() :

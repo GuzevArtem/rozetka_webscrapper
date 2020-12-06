@@ -1,13 +1,14 @@
 import requests
 import datetime
 
-
 import model
+import settings
+
+import files.file_writer as fw
 
 from bs4 import BeautifulSoup
 
 from driver import Driver
-import settings
 
 def decode_str(unicodestr):
     #encoded = unicodestr.encode()
@@ -30,7 +31,7 @@ def parse_comment(comment):
 
     comment_link = comment.find(class_="comment__link")
     if comment_link:
-        parsed_comment.link = comment_link.get("href")
+        parsed_comment.url = comment_link.get("href")
 
     comment_vars_list = comment.find(class_="comment__vars-list") #sellers
 
@@ -234,14 +235,42 @@ def parse_root():
     return parsed_categories
 
 def scrap_rozetka_web_site():
-    parsed = parse_root()
-    with open(settings.RESULT_FILE_NAME_TEMPLATE + "_" + str(datetime.datetime.now()).replace(" ", "_").replace(":","").replace(".", "") + ".json",
-             "w", encoding='utf-8') as f:
-        for p in parsed:
-            f.write(p.toJson())
+    time_start = datetime.datetime.now()
+    print("Parsing started at:", time_start)
+
+    parsed_site_data = parse_root()
+
+    time_end = datetime.datetime.now()
+    print("Parsing ended at:", time_end)
+    print("Parsing took:", time_end - time_start)
+
+#### testing of correct json parsing
+#    for parsed_category in parsed_site_data :
+#        reparsed = model.category.Category.fromJson(parsed_category.toJson())
+#        #print(reparsed)
+#        #print(isinstance(reparsed, model.category.Category))
+#        for g in reparsed.groups:
+#            #print(g)
+#            #print(isinstance(g, model.group.Group))
+#            for i in g.items:
+#                #print(i)
+#                #print(isinstance(i, model.item.Item))
+#                for c in i.comments:
+#                    #print(c)
+#                    #print(isinstance(c, model.item.Comment))
+
     Driver.close()
     print("End of parsing!")
     Driver.quit()
+
+    print("Saving to file!")
+    fw.write_plain_iterable(
+        (settings.RESULT_FOLDER_NAME + "/" + settings.RESULT_FILE_NAME_PREFIX + "_" + str(datetime.datetime.now()).replace(" ", "_").replace(":","").replace(".", "") + ".json").replace("/+", "/"),
+        parsed_site_data,
+        lambda o : o.toJson(),
+        encoding='utf-8'
+        )
+    return parsed_site_data
 
 
 #top category 'https://rozetka.com.ua/computers-notebooks/c80253/'
