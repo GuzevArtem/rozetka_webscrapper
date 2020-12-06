@@ -1,16 +1,13 @@
 import requests
 import datetime
 
+
+import model
+
 from bs4 import BeautifulSoup
 
 from driver import Driver
-
-from comment import Comment
-from item import Item
-from group import Group
-from category import Category
-
-from settings import *
+import settings
 
 def decode_str(unicodestr):
     #encoded = unicodestr.encode()
@@ -18,7 +15,7 @@ def decode_str(unicodestr):
     return unicodestr
 
 def parse_comment(comment):
-    parsed_comment = Comment()
+    parsed_comment = model.comment.Comment()
 
     comment_author = comment.find(class_="comment__author")
 
@@ -124,12 +121,12 @@ def parse_item_page_for_comments(page):
             for comment in comments_list:
                 parsed_comments.append(parse_comment(comment))
                 comments_count += 1
-                if comments_count >= COMMENTS_PER_PAGE_LIMIT :
+                if comments_count >= settings.COMMENTS_PER_PAGE_LIMIT :
                     break
     return parsed_comments
 
 def parse_item_page(url):
-    parsed_item = Item()
+    parsed_item = model.item.Item()
     page = requests.get(url+'comments/')
     parsed_item.url = url
     soup = BeautifulSoup(page.text, 'html.parser')
@@ -145,11 +142,11 @@ def parse_item_page(url):
     return parsed_item
 
 def parse_specific_items_group(url):
-    driver = Driver.driver
+    driver = Driver.get()
     driver.get(url)  
     html = driver.page_source
 
-    parsed_group = Group()
+    parsed_group = model.group.Group()
     parsed_group.url = url
     soup = BeautifulSoup(html, 'html.parser')
     title = soup.find("h1", class_="catalog-heading")
@@ -170,7 +167,7 @@ def parse_specific_items_group(url):
                     parsed_item = parse_item_page(item_href)
                     parsed_items.append(parsed_item)
                 items_count += 1
-                if items_count >= ITEMS_PER_GROUP_LIMIT:
+                if items_count >= settings.ITEMS_PER_GROUP_LIMIT:
                     break
         parsed_group.items = parsed_items
     else:
@@ -178,11 +175,11 @@ def parse_specific_items_group(url):
     return parsed_group
 
 def parse_category(url):
-    driver = Driver.driver
+    driver = Driver.get()
     driver.get(url)  
     html = driver.page_source
 
-    parsed_category = Category()
+    parsed_category = model.category.Category()
 
     parsed_category.url = url
     soup = BeautifulSoup(html, 'html.parser')
@@ -205,7 +202,7 @@ def parse_category(url):
                     parsed_group = parse_specific_items_group(group_href)
                     parsed_groups.append(parsed_group)
                 groups_count += 1
-                if groups_count >= GROUPS_PER_CATEGORY_LIMIT:
+                if groups_count >= settings.GROUPS_PER_CATEGORY_LIMIT:
                     break
         parsed_category.groups = parsed_groups
     else:
@@ -215,7 +212,7 @@ def parse_category(url):
 def parse_root():
     url = 'https://rozetka.com.ua/'
 
-    driver = Driver.driver
+    driver = Driver.get()
     driver.get(url)
     html = driver.page_source
 
@@ -232,19 +229,19 @@ def parse_root():
             if category:
                 parsed_categories.append(category)
             categories_count += 1
-            if categories_count >= CATEGORIES_LIMIT:
+            if categories_count >= settings.CATEGORIES_LIMIT:
                 break
     return parsed_categories
 
-#if __name__ == "__main__":
-parsed = parse_root()
-with open(RESULT_FILE_NAME_TEMPLATE + "_" + str(datetime.datetime.now()).replace(" ", "_").replace(":","").replace(".", "") + ".json",
-         "w", encoding='utf-8') as f:
-    for p in parsed:
-        f.write(p.toJson())
-Driver.driver.close()
-print("End of parsing!")
-Driver.driver.quit()
+def scrap_rozetka_web_site():
+    parsed = parse_root()
+    with open(settings.RESULT_FILE_NAME_TEMPLATE + "_" + str(datetime.datetime.now()).replace(" ", "_").replace(":","").replace(".", "") + ".json",
+             "w", encoding='utf-8') as f:
+        for p in parsed:
+            f.write(p.toJson())
+    Driver.close()
+    print("End of parsing!")
+    Driver.quit()
 
 
 #top category 'https://rozetka.com.ua/computers-notebooks/c80253/'

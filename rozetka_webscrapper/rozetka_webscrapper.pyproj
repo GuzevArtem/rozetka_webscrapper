@@ -21,19 +21,22 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="category.py">
+    <Compile Include="model\category.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="comment.py">
+    <Compile Include="model\comment.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="driver.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="group.py">
+    <Compile Include="model\group.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="item.py">
+    <Compile Include="model\item.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="model\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="settings.py">
@@ -43,6 +46,9 @@
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="model\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
