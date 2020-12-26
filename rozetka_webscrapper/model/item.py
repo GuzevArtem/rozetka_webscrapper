@@ -16,6 +16,7 @@ class Item:
         else:
             self.name = ""
             self.url = ""
+            self.description = ""
             self.comments = []
             self.error = ""
 

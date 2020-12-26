@@ -8,9 +8,9 @@ def create_parent_dirs(file_path) :
 
 
 
-def write_plain(file_path, data, encoding='utf-8') :
+def write_plain(file_path, data, encoding='utf-8', mode = 'w') :
     create_parent_dirs(file_path)
-    with open(file_path, "w", encoding='utf-8') as f:
+    with open(file_path, mode, encoding='utf-8') as f:
         f.write(data)
 
 

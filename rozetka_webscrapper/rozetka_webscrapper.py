@@ -4,8 +4,6 @@ import datetime
 import model
 import settings
 
-import files.file_writer as fw
-
 from model.category import Category
 from model.group import Group
 from model.item import Item
@@ -14,6 +12,11 @@ from model.comment import Comment
 from bs4 import BeautifulSoup
 
 from driver import Driver
+
+import files.file_reader as fr
+import files.file_writer as fw
+
+import json
 
 def decode_str(unicodestr):
     #encoded = unicodestr.encode()
@@ -129,10 +132,18 @@ def parse_item_page_for_comments(page):
                 comments_count += 1
                 if comments_count >= settings.COMMENTS_PER_PAGE_LIMIT :
                     break
+
     return parsed_comments
+
+def parse_item_page_for_description(url):
+    page = requests.get(url)
+    soup = BeautifulSoup(page.text, 'html.parser')
+    description = soup.find(class_="product-about__description-content")
+    return decode_str(description.get_text()) if description else "" #runtime generated
 
 def parse_item_page(url):
     parsed_item = Item()
+    parsed_item.description = parse_item_page_for_description(url)
     page = requests.get(url+'comments/')
     parsed_item.url = url
     soup = BeautifulSoup(page.text, 'html.parser')
@@ -175,6 +186,8 @@ def parse_specific_items_group(url):
                 items_count += 1
                 if items_count >= settings.ITEMS_PER_GROUP_LIMIT:
                     break
+                else:
+                    print("PARSED ITEMS:", str(items_count) , "/", str(min(len(item_wrappers), settings.ITEMS_PER_GROUP_LIMIT)))
         parsed_group.items = parsed_items
     else:
         parsed_group.error = "error"
@@ -210,6 +223,8 @@ def parse_category(url):
                 groups_count += 1
                 if groups_count >= settings.GROUPS_PER_CATEGORY_LIMIT:
                     break
+                else:
+                    print("PARSED GROUPS:", str(groups_count) , "/", str(min(len(group_wrappers), settings.GROUPS_PER_CATEGORY_LIMIT)))
         parsed_category.groups = parsed_groups
     else:
         parsed_item.error = "error"
@@ -237,6 +252,8 @@ def parse_root():
             categories_count += 1
             if categories_count >= settings.CATEGORIES_LIMIT:
                 break
+            else:
+                print("PARSED CATEGORIES:", str(categories_count) , "/", str(min(len(link_holders), settings.CATEGORIES_LIMIT)))
     return parsed_categories
 
 def scrap_rozetka_web_site():
@@ -268,10 +285,21 @@ def scrap_rozetka_web_site():
     print("End of parsing!")
     Driver.quit()
 
+    #filter empty categories
+    filtered_parsed_site_data = []
+    for c in parsed_site_data:
+        if len(c.groups) > 0:
+            #groups = []
+            #for g in c.groups:
+            #    if len(g.items) > 0:
+            #        groups.append(g)
+            #c.groups = groups
+            filtered_parsed_site_data.append(c)
+
     print("Saving to file!")
     fw.write_plain_iterable(
         settings.SITE_SCRAP_RELATIVE_FILE_PATH_STRING.format(str(datetime.datetime.now()).replace(" ", "_").replace(":","").replace(".", "")).replace("/+", "/"),
-        parsed_site_data,
+        filtered_parsed_site_data,
         lambda o : o.toJson(),
         encoding='utf-8'
         )
@@ -303,3 +331,45 @@ def scrap_rozetka_web_site():
 #get all divs by selector
 #.comment
 #parse comment
+
+def check_application_mode(application_mode_str) :
+    for str in settings.APPLICATION_MODES_LIST:
+        if str == application_mode_str :
+            return True
+    return False
+
+def run_clean() :
+    print("Running reading from site sequence")
+    result = scrap_rozetka_web_site()
+    print("Scraped", len(result), "categories.")
+    return result
+
+def run_from_file() :
+    print("Running reading from previously stored data sequence")
+    filenames = fr.get_all_filenames('./'+settings.RESULT_FOLDER_NAME, settings.SITE_SCRAP_RESULT_FILE_NAME_PREFIX)
+    
+    def parse_file_data (file_data) :
+        parsed_as_json = json.loads(file_data)
+        parsed = []
+        for cat in parsed_as_json:
+            parsed.append(Category(cat))
+        return parsed
+    
+    result = []
+    for filename in filenames:
+        categories = fr.read_file_as(filename, lambda file_data : parse_file_data(file_data) )
+        result += categories
+    print("Loaded", len(result), "categories.")
+    return result
+
+def run() :
+    mode = settings.APPLICATION_MODE
+    if not check_application_mode(mode):
+        print("Error!", "App mode:", mode, "not found in list", settings.APPLICATION_MODES_LIST)
+        raise RuntimeError(" ".join(["App mode:", mode, "not found in list", settings.APPLICATION_MODES_LIST]))
+
+    mode_runner_map = {
+        settings.APPLICATION_MODES_LIST[0] : lambda : run_clean(),
+        settings.APPLICATION_MODES_LIST[1] : lambda : run_from_file()
+        }
+    return mode_runner_map[mode]()

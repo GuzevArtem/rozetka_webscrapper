@@ -52,6 +52,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="post_process\model\__init__.py" />
+    <Compile Include="post_process\word2vec.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="post_process\__init__.py">
       <SubType>Code</SubType>
     </Compile>
