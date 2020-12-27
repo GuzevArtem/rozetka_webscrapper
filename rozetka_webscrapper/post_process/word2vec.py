@@ -247,7 +247,7 @@ def process_w2v_data(w2v_dict):
     #Clusterize
     print("K-nearest-neighbours clusterization")
     #Clear small messy words #TODO
-    points = clear_if_distance_to_origin_more(list(w2v_dict.values()), 1.0)
+    points = list(w2v_dict.values()) #clear_if_distance_to_origin_more(list(w2v_dict.values()), 1.0)
     cw = ClusterWorker(points, 10, [0.0, 0.0], [1.5, 1.5])
     clusters, variation_history = cw.solve(12)
     print("plot clusters")
