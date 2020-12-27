@@ -1,6 +1,6 @@
 from post_process.bow_processing import Bow
 from post_process.model.bag import Bag
-
+import post_process.word2vec as w2v
 import settings
 
 import files.file_reader as fr
@@ -55,8 +55,7 @@ def postprocess_bow_and_bigramms(data):
     return bags, bigramms
 
 def word2vec(data):
-
-    pass
+    return w2v.process(data)
 
 def postprocess(data) :
     mode = settings.POSTPROCESS_MODE

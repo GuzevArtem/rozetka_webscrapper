@@ -48,6 +48,9 @@
     <Compile Include="post_process\bow_processing.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="post_process\kNN.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="post_process\model\bag.py">
       <SubType>Code</SubType>
     </Compile>
