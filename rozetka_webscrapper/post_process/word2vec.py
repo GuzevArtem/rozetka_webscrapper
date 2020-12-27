@@ -22,7 +22,7 @@ import files.file_reader as fr
 def clean_text(
     string: str, 
     punctuations=r'''!()-[]{};:'"\,<>./?@#$%^&*_~''',
-    stop_words=['the', 'a', 'and', 'is', 'be', 'will']) -> str:
+    stop_words=['и', 'или', 'иначе', 'это', 'так', 'будут', 'быть', 'что', 'то', 'как', 'або', 'чи', 'потому']) -> str:
     """
     A method to clean text 
     """
@@ -31,6 +31,9 @@ def clean_text(
 
     # Cleaning the html elements
     string = re.sub(r'<.*?>', ' ', string)
+    
+    # Cleaning not words symbols
+    string = re.sub(r'\W+', ' ', string)
 
     # Removing the punctuations
     for x in string.lower(): 
@@ -95,13 +98,11 @@ def create_unique_word_dict(text:list) -> dict:
 
     return unique_word_dict 
 
+
 def create_matrices(unique_word_dict, word_lists, max_iterations_count = 0):
 
     # Defining the number of features (unique words)
     n_words = len(unique_word_dict)
-
-    # Getting all the unique words 
-    #words = list(unique_word_dict.keys())
 
     # Creating the X and Y matrices using one hot encoding
     X = np.empty([0, n_words], dtype=float)
@@ -129,6 +130,7 @@ def create_matrices(unique_word_dict, word_lists, max_iterations_count = 0):
         Y = np.append(Y, [Y_row], axis=0) #extremely slow
 
     return X, Y
+
 
 def model_fit(X, Y, unique_word_dict, embed_size=2):
     # Defining the neural network
@@ -191,23 +193,40 @@ def process_from_scratch(data):
     return process_w2v_data(embedding_dict)
 
 
-def process_from_file(data):
-    w2v_dict = json.loads(fr.read_file(settings.WORD2VEC_RELATIVE_FILE_PATH_STRING.format('dictionary')))
-    return process_w2v_data(w2v_dict)
+
 
 
 import matplotlib.pyplot as plt
 from post_process.kNN import ClusterWorker, distance
 
-def clear_if_distance_to_origin_less(points, max_distance):
+def clear_if_distance_to_origin_more(points, max_distance):
     changed = []
     for p in points:
-        if distance(p, [0.0, 0.0]) > max_distance:
+        if distance(p, [0.0, 0.0]) <= max_distance:
             changed.append(p)
     return changed
 
+
+def preview_annotated(w2v_dict, preview_start, preview_size):
+    print("Displaying cloud of size:", min(preview_size, max(0, len(w2v_dict) - preview_start)))
+    prepared_count = 0
+    x_arr = []
+    y_arr = []
+    for word in list(w2v_dict.keys()):
+        prepared_count += 1
+        if preview_start > prepared_count:
+            continue
+        if prepared_count >= preview_size:
+            break
+        coord = w2v_dict.get(word)
+        x_arr.append(coord[0])
+        y_arr.append(coord[1])
+        plt.annotate(word, (coord[0], coord[1]))
+    plt.scatter(x_arr, y_arr)
+    plt.show()
+
+
 def process_w2v_data(w2v_dict):
-    #display final vector data
     print("Displaying cloud of size:", len(w2v_dict))
 
     prepared_count = 0
@@ -227,8 +246,8 @@ def process_w2v_data(w2v_dict):
 
     #Clusterize
     print("K-nearest-neighbours clusterization")
-    #Clear small messy words
-    points = clear_if_distance_to_origin_less(list(w2v_dict.values()), 0.02)
+    #Clear small messy words #TODO
+    points = clear_if_distance_to_origin_more(list(w2v_dict.values()), 1.0)
     cw = ClusterWorker(points, 10, [0.0, 0.0], [1.5, 1.5])
     clusters, variation_history = cw.solve(12)
     print("plot clusters")
@@ -241,6 +260,14 @@ def process_w2v_data(w2v_dict):
     ClusterWorker.plot(clusters)
     plt.show()
     return clusters
+
+
+def process_from_file(data):
+    w2v_dict = json.loads(fr.read_file(settings.WORD2VEC_RELATIVE_FILE_PATH_STRING.format('dictionary')))
+    if settings.POSTPROCESS_WORD2VEC_PREVIEW:
+        preview_annotated(w2v_dict, settings.POSTPROCESS_WORD2VEC_PREVIEW_START, settings.POSTPROCESS_WORD2VEC_PREVIEW_SIZE)
+    else:
+        return process_w2v_data(w2v_dict)
 
 
 def process(data):
