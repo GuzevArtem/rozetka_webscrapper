@@ -196,15 +196,14 @@ def process_from_file(data):
     return process_w2v_data(w2v_dict)
 
 
-
 import matplotlib.pyplot as plt
 from post_process.kNN import ClusterWorker, distance
 
 def clear_if_distance_to_origin_less(points, max_distance):
     changed = []
     for p in points:
-        if distance(p.value, [0.0, 0.0]) > max_distance:
-            changed.append(c)
+        if distance(p, [0.0, 0.0]) > max_distance:
+            changed.append(p)
     return changed
 
 def process_w2v_data(w2v_dict):
@@ -230,7 +229,7 @@ def process_w2v_data(w2v_dict):
     print("K-nearest-neighbours clusterization")
     #Clear small messy words
     points = clear_if_distance_to_origin_less(list(w2v_dict.values()), 0.02)
-    cw = ClusterWorker(points, 10, [-10.0, -10.0], [10.0, 10.0])
+    cw = ClusterWorker(points, 10, [0.0, 0.0], [1.5, 1.5])
     clusters, variation_history = cw.solve(12)
     print("plot clusters")
     plt.figure(2)
