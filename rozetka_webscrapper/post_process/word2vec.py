@@ -105,9 +105,10 @@ def create_matrices(unique_word_dict, word_lists, max_iterations_count = 0):
     n_words = len(unique_word_dict)
 
     # Creating the X and Y matrices using one hot encoding
-    X = np.empty([0, n_words], dtype=float)
-    Y = np.empty([0, n_words], dtype=float)
-
+    #X = np.empty([0, n_words], dtype=float)
+    #Y = np.empty([0, n_words], dtype=float)
+    X = []
+    Y = []
     for i, word_list in tqdm(enumerate(word_lists)):
         if max_iterations_count > 0 and i >= max_iterations_count:
             break
@@ -126,10 +127,12 @@ def create_matrices(unique_word_dict, word_lists, max_iterations_count = 0):
         Y_row[context_word_index] = 1
 
         # Appending to the main matrices
-        X = np.append(X, [X_row], axis=0) #extremely slow
-        Y = np.append(Y, [Y_row], axis=0) #extremely slow
+        X.append(X_row)
+        Y.append(Y_row)
+        #X = np.append(X, [X_row], axis=0) #extremely slow
+        #Y = np.append(Y, [Y_row], axis=0) #extremely slow
 
-    return X, Y
+    return np.asarray(X, dtype=float), np.asarray(Y, dtype=float)
 
 
 def model_fit(X, Y, unique_word_dict, embed_size=2):
@@ -246,9 +249,8 @@ def process_w2v_data(w2v_dict):
 
     #Clusterize
     print("K-nearest-neighbours clusterization")
-    #Clear small messy words #TODO
-    points = list(w2v_dict.values()) #clear_if_distance_to_origin_more(list(w2v_dict.values()), 1.0)
-    cw = ClusterWorker(points, 10, [0.0, 0.0], [1.5, 1.5])
+    points = list(w2v_dict.values())
+    cw = ClusterWorker(points, 10, [-10.0, -10.0], [10.0, 10.0]) #empiric values
     clusters, variation_history = cw.solve(12)
     print("plot clusters")
     plt.figure(2)
